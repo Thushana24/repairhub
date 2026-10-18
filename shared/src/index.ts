@@ -1,1 +1,1 @@
-export const APP_NAME = "RepairHub";
+export const APP_NAME = 'RepairHub'

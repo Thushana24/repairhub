@@ -4,6 +4,6 @@ export class AppError extends Error {
     message: string,
     public errors?: unknown,
   ) {
-    super(message);
+    super(message)
   }
 }
