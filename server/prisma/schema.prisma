@@ -1,0 +1,177 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  SUPERVISOR
+  TECHNICIAN
+  TENANT
+}
+
+enum TicketStatus {
+  SUBMITTED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum Category {
+  PLUMBING
+  ELECTRICAL
+  HVAC
+  CLEANING
+  CARPENTRY
+  OTHER
+}
+
+model User {
+  id                 String                @id @default(cuid())
+  name               String
+  email              String                @unique
+  passwordHash       String
+  phone              String?
+  role               Role
+  isActive           Boolean               @default(true)
+  mustChangePassword Boolean               @default(false)
+  unitId             String?
+  unit               Unit?                 @relation(fields: [unitId], references: [id])
+  createdTickets     Ticket[]              @relation("TenantTickets")
+  assignedTickets    Ticket[]              @relation("TechnicianTickets")
+  comments           Comment[]
+  statusChanges      TicketStatusHistory[]
+  refreshTokens      RefreshToken[]
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+}
+
+model Building {
+  id       String  @id @default(cuid())
+  name     String
+  address  String
+  isActive Boolean @default(true)
+  units    Unit[]
+}
+
+model Unit {
+  id         String   @id @default(cuid())
+  number     String
+  floor      Int?
+  isActive   Boolean  @default(true)
+  buildingId String
+  building   Building @relation(fields: [buildingId], references: [id])
+  tenants    User[]
+  tickets    Ticket[]
+  invites    Invite[]
+
+  @@unique([buildingId, number])
+}
+
+model Invite {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  unitId    String
+  unit      Unit      @relation(fields: [unitId], references: [id])
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model Ticket {
+  id           String                @id @default(cuid())
+  code         String                @unique
+  title        String
+  description  String
+  category     Category
+  priority     Priority
+  status       TicketStatus          @default(SUBMITTED)
+  tenantId     String
+  tenant       User                  @relation("TenantTickets", fields: [tenantId], references: [id])
+  unitId       String
+  unit         Unit                  @relation(fields: [unitId], references: [id])
+  assignedToId String?
+  assignedTo   User?                 @relation("TechnicianTickets", fields: [assignedToId], references: [id])
+  slaDueAt     DateTime
+  completedAt  DateTime?
+  images       TicketImage[]
+  history      TicketStatusHistory[]
+  comments     Comment[]
+  rating       Rating?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  @@index([status])
+  @@index([assignedToId])
+  @@index([tenantId])
+  @@index([createdAt])
+}
+
+model TicketImage {
+  id       String @id @default(cuid())
+  url      String
+  publicId String
+  ticketId String
+  ticket   Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model TicketStatusHistory {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      Ticket        @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fromStatus  TicketStatus?
+  toStatus    TicketStatus
+  changedById String
+  changedBy   User          @relation(fields: [changedById], references: [id])
+  note        String?
+  createdAt   DateTime      @default(now())
+
+  @@index([ticketId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  body      String
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+model Rating {
+  id       String  @id @default(cuid())
+  stars    Int
+  review   String?
+  ticketId String  @unique
+  ticket   Ticket  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  revokedAt DateTime?
+}

@@ -5,3 +5,4 @@ coverage
 package-lock.json
 client/src/components/ui
 docs
+server/generated

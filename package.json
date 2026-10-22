@@ -23,7 +23,13 @@
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate -w server",
+    "db:migrate": "npm run db:migrate -w server",
+    "db:studio": "npm run db:studio -w server",
+    "export:changes": "git status --short --untracked-files=all > \"%USERPROFILE%\\Desktop\\repairhub-changes.txt\" && git diff HEAD -- client server >> \"%USERPROFILE%\\Desktop\\repairhub-changes.txt\""
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.3",
@@ -40,8 +46,5 @@
     "prettier": "^3.9.10",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2"
-  },
-  "overrides": {
-    "esbuild": "0.28.2"
   }
 }
