@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:16
+    container_name: repairhub-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: repairhub
+      POSTGRES_PASSWORD: repairhub
+      POSTGRES_DB: repairhub
+    ports:
+      - '5432:5432'
+    volumes:
+      - repairhub-data:/var/lib/postgresql/data
+
+volumes:
+  repairhub-data:
