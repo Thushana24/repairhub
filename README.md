@@ -1,5 +1,7 @@
 # RepairHub: Facility Maintenance Management System
 
+![CI](https://github.com/Thushana24/repairhub/actions/workflows/ci.yml/badge.svg)
+
 Tenants raise repair requests, supervisors assign technicians,
 technicians complete jobs, and admins monitor performance.
 
